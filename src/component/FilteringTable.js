@@ -1,18 +1,21 @@
 import React, { useMemo } from 'react'
-import { useTable } from 'react-table'
+import { useTable, useGlobalFilter, useFilters } from 'react-table'
 import MOCK_DATA from './MOCK_DATA.json'
 import { COLUMNS } from './columns'
 import './table.css'
+import { GlobalFilter } from './GlobalFilter'
+import { ColumnFilter } from './ColumnFilter'
 
-export const BasicTable = () => {
+export const FilteringTable = () => {
 
     const columns = useMemo(() => COLUMNS, [])
     const data = useMemo(() => MOCK_DATA, [])
 
-    const tableInstance = useTable({
-        columns,
-        data
-    })
+    const defaultColumn = useMemo(() => {
+        return {
+            Filter: ColumnFilter
+        }
+    }, [])
 
     const {
         getTableProps,
@@ -21,16 +24,30 @@ export const BasicTable = () => {
         footerGroups,
         rows,
         prepareRow,
-    } = tableInstance
+        state,
+        setGlobalFilter,
+    } = useTable({
+        columns,
+        data
+        }, 
+        useFilters,
+        useGlobalFilter
+    )
+
+    const { globalFilter } = state
 
     return (
+        <>
+        <GlobalFilter filter = {globalFilter} setFilter = {setGlobalFilter} />
         <table {...getTableProps()}>
             <thead>
                 {headerGroups.map((headerGroup) => (
                     <tr {...headerGroup.getHeaderGroupProps()}>
                         {headerGroup.headers.map((column) => (
-                        <th {...column.getHeaderProps()}>{column.render('Header')}</th>
-                        ))}
+                        <th {...column.getHeaderProps()} > {column.render('Header')}
+                            <div>{column.canFilter ? column.render('Filter') : null}</div>
+                        </th>
+                        ))} 
                     </tr>
                 ))}
             </thead>
@@ -47,11 +64,6 @@ export const BasicTable = () => {
                         
                     })
                 }
-                <tr>
-                    <td>
-
-                    </td>
-                </tr>
             </tbody>
             <tfoot>
                 {footerGroups.map((footerGroup) => (
@@ -68,5 +80,6 @@ export const BasicTable = () => {
                 ))}
             </tfoot>
         </table>
+        </>
     )
 }
